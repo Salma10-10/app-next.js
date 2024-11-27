@@ -22,8 +22,17 @@ const TodoPage = () => {
         setTodos(todos.filter((_, i) => i !== index));
     };
 
+    const updateTodo = (index: number) => {
+        const updatedTodo = prompt('Edit your to-do:', todos[index]);
+        if (updatedTodo) {
+            const updatedTodos = [...todos];
+            updatedTodos[index] = updatedTodo;
+            setTodos(updatedTodos);
+        }
+    };
+
     if (!isMounted) {
-        return null; // Avoid rendering mismatched HTML until hydration completes
+        return null;
     }
 
     return (
@@ -36,6 +45,9 @@ const TodoPage = () => {
                             <span>{todo}</span>
                             <button onClick={() => deleteTodo(index)} style={styles.deleteButton}>
                                 Delete
+                            </button>
+                            <button onClick={() => updateTodo(index)} style={styles.editButton}>
+                                Edit
                             </button>
                         </li>
                     ))}
@@ -86,6 +98,14 @@ const styles = {
     },
     deleteButton: {
         backgroundColor: '#ff4d4f',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '5px 10px',
+        cursor: 'pointer',
+    },
+    editButton: {
+        backgroundColor: '#4caf50',
         color: '#fff',
         border: 'none',
         borderRadius: '4px',
