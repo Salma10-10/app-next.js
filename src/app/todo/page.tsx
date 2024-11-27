@@ -1,126 +1,165 @@
 'use client';
+import { useEffect, useState } from 'react';
 
-import { useState, useEffect } from 'react';
+export default function TodoPage() {
+    // State to store to-do items
+    const [todos, setTodos] = useState<{ id: number; title: string }[]>([]);
+    const [newTodo, setNewTodo] = useState('');
+    const [editTodoId, setEditTodoId] = useState<number | null>(null); // State for editing
+    const [editTodoTitle, setEditTodoTitle] = useState('');
 
-const TodoPage = () => {
-    const [todos, setTodos] = useState<string[]>([]);
-    const [isMounted, setIsMounted] = useState(false);
-
+    // Load to-do items from localStorage when the component mounts
     useEffect(() => {
-        setIsMounted(true);
-        setTodos(['Learn Next.js', 'Build a To-Do App']); // Mock initial data
+        const storedTodos = localStorage.getItem('todos');
+        if (storedTodos) {
+            setTodos(JSON.parse(storedTodos));
+        }
     }, []);
 
+    // Save to-do items to localStorage whenever the list changes
+    useEffect(() => {
+        if (todos.length > 0) {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+    }, [todos]);
+
+    // Add a new to-do item
     const addTodo = () => {
-        const newTodo = prompt('Enter a new to-do:');
-        if (newTodo) {
-            setTodos([...todos, newTodo]);
-        }
+        if (newTodo.trim() === '') return;
+        const newTodoItem = {
+            id: Date.now(), // Unique id using the current timestamp
+            title: newTodo,
+        };
+        setTodos([...todos, newTodoItem]);
+        setNewTodo('');
     };
 
-    const deleteTodo = (index: number) => {
-        setTodos(todos.filter((_, i) => i !== index));
+    // Edit a to-do item
+    const editTodo = (id: number, title: string) => {
+        setEditTodoId(id);
+        setEditTodoTitle(title);
     };
 
-    const updateTodo = (index: number) => {
-        const updatedTodo = prompt('Edit your to-do:', todos[index]);
-        if (updatedTodo) {
-            const updatedTodos = [...todos];
-            updatedTodos[index] = updatedTodo;
-            setTodos(updatedTodos);
-        }
+    // Save edited to-do item
+    const saveEdit = () => {
+        const updatedTodos = todos.map(todo =>
+            todo.id === editTodoId ? { ...todo, title: editTodoTitle } : todo
+        );
+        setTodos(updatedTodos);
+        setEditTodoId(null); // Close editing mode
+        setEditTodoTitle('');
     };
 
-    if (!isMounted) {
-        return null;
-    }
+    // Delete a to-do item
+    const deleteTodo = (id: number) => {
+        const updatedTodos = todos.filter(todo => todo.id !== id);
+        setTodos(updatedTodos);
+    };
 
     return (
         <div style={styles.container}>
-            <div style={styles.card}>
-                <h1 style={styles.heading}>My To-Do List</h1>
-                <ul style={styles.list}>
-                    {todos.map((todo, index) => (
-                        <li key={index} style={styles.listItem}>
-                            <span>{todo}</span>
-                            <button onClick={() => deleteTodo(index)} style={styles.deleteButton}>
-                                Delete
-                            </button>
-                            <button onClick={() => updateTodo(index)} style={styles.editButton}>
-                                Edit
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-                <button onClick={addTodo} style={styles.addButton}>
-                    Add To-Do
-                </button>
-            </div>
+            <h1 style={styles.title}>To-Do List</h1>
+
+            <input
+                type="text"
+                value={newTodo}
+                onChange={(e) => setNewTodo(e.target.value)}
+                placeholder="Add a new to-do"
+                style={styles.input}
+            />
+            <button onClick={addTodo} style={styles.addBtn}>Add</button>
+
+            <ul style={styles.todoList}>
+                {todos.map(todo => (
+                    <li key={todo.id} style={styles.todoItem}>
+                        {editTodoId === todo.id ? (
+                            <>
+                                <input
+                                    type="text"
+                                    value={editTodoTitle}
+                                    onChange={(e) => setEditTodoTitle(e.target.value)}
+                                    style={styles.input}
+                                />
+                                <button onClick={saveEdit} style={styles.addBtn}>Save</button>
+                            </>
+                        ) : (
+                            <>
+                                {todo.title}
+                                <button onClick={() => deleteTodo(todo.id)} style={styles.deleteBtn}>Delete</button>
+                                <button onClick={() => editTodo(todo.id, todo.title)} style={styles.editBtn}>Edit</button>
+                            </>
+                        )}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
-};
+}
 
 const styles = {
     container: {
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
         alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#f5f5f5',
-    },
-    card: {
-        backgroundColor: '#fff',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#f4f4f9',
         padding: '20px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        textAlign: 'center',
-        width: '300px',
     },
-    heading: {
-        fontSize: '24px',
-        marginBottom: '20px',
+    title: {
+        fontSize: '2rem',
         color: '#333',
+        marginBottom: '20px',
     },
-    list: {
+    input: {
+        padding: '10px',
+        fontSize: '1rem',
+        marginBottom: '10px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        width: '100%',
+        maxWidth: '300px',
+    },
+    addBtn: {
+        padding: '10px 20px',
+        backgroundColor: '#4CAF50',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        marginBottom: '20px',
+    },
+    todoList: {
         listStyleType: 'none',
-        padding: 0,
-        margin: 0,
+        padding: '0',
+        margin: '0',
+        width: '100%',
+        maxWidth: '400px',
     },
-    listItem: {
+    todoItem: {
+        backgroundColor: '#fff',
+        padding: '10px',
+        margin: '5px 0',
+        borderRadius: '4px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '10px',
-        padding: '10px',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        backgroundColor: '#f9f9f9',
+        boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
     },
-    deleteButton: {
-        backgroundColor: '#ff4d4f',
-        color: '#fff',
+    deleteBtn: {
+        backgroundColor: '#FF6347',
+        color: 'white',
         border: 'none',
         borderRadius: '4px',
         padding: '5px 10px',
         cursor: 'pointer',
     },
-    editButton: {
-        backgroundColor: '#4caf50',
-        color: '#fff',
+    editBtn: {
+        backgroundColor: '#FFD700',
+        color: 'white',
         border: 'none',
         borderRadius: '4px',
         padding: '5px 10px',
         cursor: 'pointer',
-    },
-    addButton: {
-        backgroundColor: '#4caf50',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '4px',
-        padding: '10px 20px',
-        cursor: 'pointer',
-        marginTop: '20px',
     },
 };
-
-export default TodoPage;
