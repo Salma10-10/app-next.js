@@ -23,9 +23,19 @@ export default function TodoPage() {
         }
     }, [todos]);
 
-    // Add a new to-do item
+    // Add a new to-do item with validation
     const addTodo = () => {
-        if (newTodo.trim() === '') return;
+        // Client-side validation
+        if (newTodo.trim() === '') {
+            alert('Please enter a valid to-do!');
+            return;
+        }
+
+        if (newTodo.length > 100) {
+            alert('To-do title is too long! Maximum length is 100 characters.');
+            return;
+        }
+
         const newTodoItem = {
             id: Date.now(), // Unique id using the current timestamp
             title: newTodo,
@@ -42,6 +52,17 @@ export default function TodoPage() {
 
     // Save edited to-do item
     const saveEdit = () => {
+        // Client-side validation for editing
+        if (editTodoTitle.trim() === '') {
+            alert('Please enter a valid title!');
+            return;
+        }
+
+        if (editTodoTitle.length > 100) {
+            alert('To-do title is too long! Maximum length is 100 characters.');
+            return;
+        }
+
         const updatedTodos = todos.map(todo =>
             todo.id === editTodoId ? { ...todo, title: editTodoTitle } : todo
         );
