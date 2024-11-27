@@ -1,9 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const TodoPage = () => {
-    const [todos, setTodos] = useState<string[]>(['Learn Next.js', 'Build a To-Do App']);
+    const [todos, setTodos] = useState<string[]>([]);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+        setTodos(['Learn Next.js', 'Build a To-Do App']); // Mock initial data
+    }, []);
 
     const addTodo = () => {
         const newTodo = prompt('Enter a new to-do:');
@@ -16,27 +22,85 @@ const TodoPage = () => {
         setTodos(todos.filter((_, i) => i !== index));
     };
 
+    if (!isMounted) {
+        return null; // Avoid rendering mismatched HTML until hydration completes
+    }
+
     return (
-        <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-            <h1>My To-Do List</h1>
-            <ul>
-                {todos.map((todo, index) => (
-                    <li key={index} style={{ margin: '10px 0' }}>
-                        {todo}
-                        <button
-                            onClick={() => deleteTodo(index)}
-                            style={{ marginLeft: '10px', color: 'red' }}
-                        >
-                            Delete
-                        </button>
-                    </li>
-                ))}
-            </ul>
-            <button onClick={addTodo} style={{ marginTop: '20px' }}>
-                Add To-Do
-            </button>
+        <div style={styles.container}>
+            <div style={styles.card}>
+                <h1 style={styles.heading}>My To-Do List</h1>
+                <ul style={styles.list}>
+                    {todos.map((todo, index) => (
+                        <li key={index} style={styles.listItem}>
+                            <span>{todo}</span>
+                            <button onClick={() => deleteTodo(index)} style={styles.deleteButton}>
+                                Delete
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+                <button onClick={addTodo} style={styles.addButton}>
+                    Add To-Do
+                </button>
+            </div>
         </div>
     );
+};
+
+const styles = {
+    container: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#f5f5f5',
+    },
+    card: {
+        backgroundColor: '#fff',
+        padding: '20px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        textAlign: 'center',
+        width: '300px',
+    },
+    heading: {
+        fontSize: '24px',
+        marginBottom: '20px',
+        color: '#333',
+    },
+    list: {
+        listStyleType: 'none',
+        padding: 0,
+        margin: 0,
+    },
+    listItem: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '10px',
+        padding: '10px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        backgroundColor: '#f9f9f9',
+    },
+    deleteButton: {
+        backgroundColor: '#ff4d4f',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '5px 10px',
+        cursor: 'pointer',
+    },
+    addButton: {
+        backgroundColor: '#4caf50',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '10px 20px',
+        cursor: 'pointer',
+        marginTop: '20px',
+    },
 };
 
 export default TodoPage;
